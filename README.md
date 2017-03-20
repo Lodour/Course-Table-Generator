@@ -6,7 +6,7 @@
 $ git clone git@github.com:Lodour/Course-Table-Generator.git
 $ cd Course-Table-Generator
 $ pip install -r requirements.txt
-$ python gen.py
+$ python gen.py --help
 ```
 
 ## Demo
