@@ -5,6 +5,12 @@ from lxml import etree
 from urlparse import urljoin
 from PIL import Image
 from io import BytesIO
+from jinja2 import Template
+import json
+import sys
+import click
+reload(sys)
+sys.setdefaultencoding("utf-8")
 
 
 def login(session):
@@ -73,8 +79,8 @@ def get_course_table(session, term_id):
     tree = etree.HTML(req.text)
 
     # Get course data
-    courses = tree.xpath(r'//table/tr[count(td)>9]')
-    data = [[e.strip() for e in c.xpath(r'td/text()')] for c in courses]
+    courses = tree.xpath(ur'//table/tr[count(td)>9]')
+    data = [[e.strip() for e in c.xpath(ur'td/text()')] for c in courses]
     return data
 
 
@@ -90,11 +96,50 @@ def parse_time(text):
     return [(u'#一二三四五'.index(i[0]), int(i[1]), int(i[2])) for i in data]
 
 
-session = requests.Session()
-if login(session):
-    term_data = get_term_data(session)
-    for i, term in enumerate(term_data):
-        print '[%d] %s' % (i, term[1])
-    op = input('Choose a term: ')
-    data = get_course_table(session, term_data[op][0])
+def get_data():
+    """ Get data of course table """
+    session = requests.Session()
+    if login(session):
+        term_data = get_term_data(session)
+        for i, term in enumerate(term_data):
+            print '[%d] %s' % (i, term[1])
+        op = input('Choose a term: ')
+        return get_course_table(session, term_data[op][0])
+    else:
+        print 'Login failed.'
+        quit()
 
+
+@click.command()
+@click.option('--file', default=None, help='Load data from specified file.')
+@click.option('--output', default='CourseTable.html', help='Output file name.')
+def main(file, output):
+    # Prepare data
+    data = file and json.load(open(file, 'r')) or get_data()
+    _c = (['success'] * 4 + ['warning'] * 2 + ['info'] * 4 + ['danger'] * 3)
+    table = [{'color': _c[i],
+              'data': [{'name': '&nbsp', 'place': '&nbsp'} for i in range(5)]}
+             for i in range(13)]
+
+    # Map courses to table
+    for course in data:
+        name, time, place = course[1], parse_time(course[4]), course[5]
+        if len(name.encode('utf-8')) > 14:
+            name = raw_input(u'"%s"超过5个汉字，应简写为: ' % name) or name
+        for t in time:
+            for i in range(t[1], t[2] + 1):
+                cell = table[i - 1]['data'][t[0] - 1]
+                cell['name'], cell['place'] = name, place
+
+    # Save data to file
+    json.dump(data, open('course.json', 'w'))
+
+    # Render to html
+    t = Template(open('gen.html', 'r').read())
+    with open(output, 'w') as f:
+        f.write(t.render(table=table))
+
+    return True
+
+if __name__ == '__main__':
+    main()

@@ -1,0 +1,41 @@
+<!DOCTYPE html> 
+<html lang="zn"> 
+<head> 
+	<meta charset="utf-8"> 
+	<title>Course Table</title> 
+	<link href="http://cdn.static.runoob.com/libs/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+  <style type="text/css">
+    .table th, .table td { 
+      text-align: center;
+      vertical-align: middle!important;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="width: 450px">
+  	<table class="table table-striped table-bordered table-condensed">
+      <thead>
+        <tr class="active">
+          <th style="width:5%"></th>
+          <th style="width:19%">一</th>
+          <th style="width:19%">二</th>
+          <th style="width:19%">三</th>
+          <th style="width:19%">四</th>
+          <th style="width:19%">五</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for row in table %}
+          <tr class="{{ row.color }}">
+            <th>{{ loop.index }}</th>
+            {% for col in row.data %}
+              <td>{{ col.name }}<br><B>{{ col.place }}</B></td>    
+            {% endfor %}        
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
