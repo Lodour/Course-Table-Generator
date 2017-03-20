@@ -8,3 +8,6 @@ $ cd Course-Table-Generator
 $ pip install -r requirements.txt
 $ python gen.py
 ```
+
+## Demo
+![Demo](https://raw.githubusercontent.com/Lodour/Course-Table-Generator/master/demo.png)
