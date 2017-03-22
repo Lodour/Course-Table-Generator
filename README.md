@@ -9,5 +9,9 @@ $ pip install -r requirements.txt
 $ python gen.py --help
 ```
 
+## Todo
+- [ ] 直接生成图片
+- [ ] 适应分辨率
+
 ## Demo
 ![Demo](https://raw.githubusercontent.com/Lodour/Course-Table-Generator/master/demo.png)
