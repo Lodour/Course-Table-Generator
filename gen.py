@@ -9,6 +9,7 @@ from jinja2 import Template
 import json
 import sys
 import click
+from getpass import getpass
 reload(sys)
 sys.setdefaultencoding("utf-8")
 
@@ -26,6 +27,7 @@ def login(session):
 
     # Get login form's fields
     login_fields = tree.xpath(r'//input[starts-with(@id, "txt")]/@id')
+    input_methods = ((raw_input, '学号'), (getpass, '密码'), (raw_input, '验证码'))
 
     # Get validate pic
     pic_src = tree.xpath(r'//img[@id="Img1"]/@src')[0]
@@ -34,7 +36,8 @@ def login(session):
     Image.open(BytesIO(pic_content)).show()
 
     # Load login data
-    login_data = {key: raw_input('%s: ' % key) for key in login_fields}
+    login_data = {key: by[0]('%s: ' % by[1])
+                  for key, by in zip(login_fields, input_methods)}
 
     # Do login and check
     login_req = session.post(start_url, login_data)
@@ -124,7 +127,7 @@ def main(file, output):
     # Map courses to table
     for course in data:
         name, time, place = course[1], parse_time(course[4]), course[5]
-        if len(name.encode('utf-8')) > 14:
+        if len(name.encode('utf-8')) > 15:
             name = raw_input(u'"%s"超过5个汉字，应简写为: ' % name) or name
         for t in time:
             for i in range(t[1], t[2] + 1):
@@ -132,7 +135,9 @@ def main(file, output):
                 cell['name'], cell['place'] = name, place
 
     # Save data to file
-    json.dump(data, open('course.json', 'w'))
+    _buffer = json.dumps(data, indent=4).decode('unicode_escape')
+    with open('course.json', 'w') as f:
+        f.write(_buffer.encode('utf-8'))
 
     # Render to html
     t = Template(open('gen.html', 'r').read())
